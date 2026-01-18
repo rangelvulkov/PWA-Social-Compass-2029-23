@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крузо Аларм</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <style>
+        :root { --primary: #22c55e; --bg: #121212; --card: #1e1e1e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: var(--card); padding: 30px; border-radius: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; width: 300px; }
+        .progress-ring { position: relative; width: 220px; height: 220px; margin: 20px auto; }
+        .progress-ring circle { fill: none; stroke-width: 12; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.3s; }
+        #timer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 54px; font-weight: bold; }
+        .controls { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
+        button { padding: 12px 25px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        #startBtn { background: var(--primary); color: white; width: 120px; }
+        #resetBtn { background: #444; color: white; }
+        button:active { transform: scale(0.95); }
+        .stats { display: flex; justify-content: space-around; margin-top: 20px; font-size: 14px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div style="font-style: italic; color: #888; margin-bottom: 20px;">"Ти си господарят на своя остров."</div>
+
+    <div class="container">
+        <div style="letter-spacing: 3px; font-size: 12px; color: var(--primary);">КРУЗО АЛАРМ</div>
+        
+        <div class="progress-ring">
+            <svg width="220" height="220">
+                <circle stroke="#333" r="100" cx="110" cy="110"/>
+                <circle id="bar" stroke="#22c55e" r="100" cx="110" cy="110" stroke-dasharray="628.3" stroke-dashoffset="0"/>
+            </svg>
+            <div id="timer">50:00</div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="toggleTimer()">СТАРТ</button>
+            <button id="resetBtn" onclick="resetTimer()">НУЛИРАНЕ</button>
+        </div>
+
+        <div class="stats">
+            <div>Кортизол: <span id="cort">0</span></div>
+            <div>Ендорфини: <span id="endo">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Регистрация на Service Worker за инсталиране
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        let total = 3000; // 50 минути
+        let current = total;
+        let isRunning = false;
+        let timerInterval;
+        const bar = document.getElementById('bar');
+        const circleLength = 628.3;
+
+        function updateUI() {
+            let m = Math.floor(current / 60);
+            let s = current % 60;
+            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            bar.style.strokeDashoffset = circleLength - (current / total) * circleLength;
+            
+            // Смяна на статистиките за по-интересно
+            document.getElementById('cort').innerText = Math.floor((total - current) / 100);
+            document.getElementById('endo').innerText = Math.floor((total - current) / 200);
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "СТАРТ";
+                btn.style.background = "#22c55e";
+            } else {
+                timerInterval = setInterval(() => {
+                    if (current > 0) {
+                        current--;
+                        updateUI();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("Времето изтече! Почини си.");
+                        resetTimer();
+                    }
+                }, 1000);
+                btn.innerText = "ПАУЗА";
+                btn.style.background = "#ef4444";
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            current = total;
+            document.getElementById('startBtn').innerText = "СТАРТ";
+            document.getElementById('startBtn').style.background = "#22c55e";
+            updateUI();
+        }
+
+        // Първоначално зареждане
+        updateUI();
+    </script>
+</body>
+</html>
