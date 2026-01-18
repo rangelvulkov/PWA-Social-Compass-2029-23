@@ -3,100 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Крузо Аларм 2029</title>
+    <title>Крузо Аларм - Desktop Edition</title>
     <link rel="manifest" href="manifest.webmanifest">
     <style>
-        body { 
-            background: #121212; 
-            color: white; 
-            font-family: sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+        :root {
+            --primary: #22c55e;
+            --bg: #0f172a;
+            --card: #1e293b;
         }
-        #timer { 
-            font-size: 90px; 
-            font-weight: bold; 
-            color: #22c55e; 
-            margin-bottom: 30px; 
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
-        .btn-group { display: flex; gap: 20px; }
-        button { 
-            padding: 20px 40px; 
-            font-size: 20px; 
-            font-weight: bold; 
-            border-radius: 15px; 
-            border: none; 
-            cursor: pointer; 
+        .container {
+            background: var(--card);
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        #startBtn { background: #22c55e; color: white; }
-        #resetBtn { background: #444; color: white; }
-        .quote { font-style: italic; color: #888; margin-top: 40px; }
+        #timer {
+            font-size: 120px;
+            font-weight: 900;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #startBtn { background: var(--primary); color: white; }
+        #resetBtn { background: #475569; color: white; }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:active { transform: translateY(0); }
+        .hint { margin-top: 30px; color: #64748b; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="timer">50:00</div>
+    <div class="container">
+        <div style="font-size: 14px; font-weight: bold; color: #94a3b8; letter-spacing: 4px;">КРУЗО АЛАРМ</div>
+        <div id="timer">50:00</div>
 
-    <div class="btn-group">
-        <button id="startBtn" onclick="toggle()">СТАРТ</button>
-        <button id="resetBtn" onclick="reset()">НУЛИРАНЕ</button>
+        <div class="btn-group">
+            <button id="startBtn" onclick="toggle()">Старт</button>
+            <button id="resetBtn" onclick="reset()">Нулиране</button>
+        </div>
+
+        <div class="hint">Натисни <strong>Старт</strong>, за да започнеш сесията</div>
     </div>
 
-    <div class="quote">"Всяка почивка е стъпка към успеха."</div>
-
     <script>
-        // Регистрация на Service Worker
+        // Регистрация на PWA за компютъра
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        let time = 3000; // 50 минути в секунди
-        let running = false;
-        let timerId = null;
+        let time = 3000;
+        let isRunning = false;
+        let interval = null;
 
         function updateDisplay() {
-            let mins = Math.floor(time / 60);
-            let secs = time % 60;
+            const mins = Math.floor(time / 60);
+            const secs = time % 60;
             document.getElementById('timer').innerText = 
-                `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
         function toggle() {
             const btn = document.getElementById('startBtn');
-            if (!running) {
-                // СТАРТИРАНЕ
-                running = true;
-                btn.innerText = "ПАУЗА";
+            if (!isRunning) {
+                isRunning = true;
+                btn.innerText = "Пауза";
                 btn.style.background = "#ef4444";
-                timerId = setInterval(() => {
+                interval = setInterval(() => {
                     if (time > 0) {
                         time--;
                         updateDisplay();
                     } else {
-                        clearInterval(timerId);
-                        alert("Времето изтече!");
+                        clearInterval(interval);
+                        alert("Времето изтече! Време е за почивка.");
+                        reset();
                     }
                 }, 1000);
             } else {
-                // ПАУЗА
-                running = false;
-                btn.innerText = "СТАРТ";
+                isRunning = false;
+                btn.innerText = "Старт";
                 btn.style.background = "#22c55e";
-                clearInterval(timerId);
+                clearInterval(interval);
             }
         }
 
         function reset() {
-            clearInterval(timerId);
-            running = false;
+            clearInterval(interval);
+            isRunning = false;
             time = 3000;
             updateDisplay();
             const btn = document.getElementById('startBtn');
-            btn.innerText = "СТАРТ";
+            btn.innerText = "Старт";
             btn.style.background = "#22c55e";
         }
 
