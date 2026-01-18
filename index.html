@@ -3,84 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Крузо Аларм - Desktop Edition</title>
+    <title>Крузо Аларм - Био Баланс</title>
     <link rel="manifest" href="manifest.webmanifest">
     <style>
-        :root {
-            --primary: #22c55e;
-            --bg: #0f172a;
-            --card: #1e293b;
-        }
+        :root { --primary: #22c55e; --bg: #0f172a; --card: #1e293b; }
         body {
             background-color: var(--bg);
             color: white;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
         .container {
             background: var(--card);
-            padding: 50px;
+            padding: 40px;
             border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            width: 450px;
         }
         #timer {
-            font-size: 120px;
+            font-size: 100px;
             font-weight: 900;
             color: var(--primary);
-            font-variant-numeric: tabular-nums;
-            margin: 20px 0;
-            text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+            margin: 10px 0;
+            font-family: monospace;
         }
-        .btn-group {
+        .stats-container {
             display: flex;
-            gap: 20px;
-            justify-content: center;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 20px;
         }
-        button {
-            padding: 15px 40px;
+        .stat-box { text-align: center; }
+        .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 24px; font-weight: bold; display: block; }
+        .controls button {
+            padding: 15px 35px;
             font-size: 18px;
             font-weight: bold;
             border-radius: 12px;
             border: none;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin: 0 10px;
         }
         #startBtn { background: var(--primary); color: white; }
         #resetBtn { background: #475569; color: white; }
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        button:active { transform: translateY(0); }
-        .hint { margin-top: 30px; color: #64748b; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div style="font-size: 14px; font-weight: bold; color: #94a3b8; letter-spacing: 4px;">КРУЗО АЛАРМ</div>
-        <div id="timer">50:00</div>
-
-        <div class="btn-group">
-            <button id="startBtn" onclick="toggle()">Старт</button>
-            <button id="resetBtn" onclick="reset()">Нулиране</button>
+        <div style="font-size: 14px; color: #94a3b8; letter-spacing: 3px; margin-bottom: 10px;">БИО-МОНИТОР КРУЗО</div>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">Кортизол</span>
+                <span id="cort" class="stat-value" style="color: #ef4444;">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Ендорфини</span>
+                <span id="endo" class="stat-value" style="color: #3b82f6;">0</span>
+            </div>
         </div>
 
-        <div class="hint">Натисни <strong>Старт</strong>, за да започнеш сесията</div>
+        <div id="timer">50:00</div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="toggle()">Старт</button>
+            <button onclick="reset()">Нулиране</button>
+        </div>
     </div>
 
     <script>
-        // Регистрация на PWA за компютъра
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         let time = 3000;
         let isRunning = false;
@@ -91,6 +93,11 @@
             const secs = time % 60;
             document.getElementById('timer').innerText = 
                 `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Логика за "хромозомите" (статистиките)
+            let passed = 3000 - time;
+            document.getElementById('cort').innerText = Math.floor(passed / 60); // Покачва се всяка минута
+            document.getElementById('endo').innerText = Math.floor(passed / 120); // На всеки 2 минути
         }
 
         function toggle() {
@@ -105,7 +112,7 @@
                         updateDisplay();
                     } else {
                         clearInterval(interval);
-                        alert("Времето изтече! Време е за почивка.");
+                        alert("Времето изтече!");
                         reset();
                     }
                 }, 1000);
@@ -122,9 +129,8 @@
             isRunning = false;
             time = 3000;
             updateDisplay();
-            const btn = document.getElementById('startBtn');
-            btn.innerText = "Старт";
-            btn.style.background = "#22c55e";
+            document.getElementById('startBtn').innerText = "Старт";
+            document.getElementById('startBtn').style.background = "#22c55e";
         }
 
         updateDisplay();
