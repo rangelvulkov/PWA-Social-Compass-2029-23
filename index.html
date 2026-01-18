@@ -3,120 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Социален компас: Крузо</title>
+    <title>Крузо Аларм</title>
     <link rel="manifest" href="manifest.webmanifest">
     <style>
-        :root {
-            --primary: #22c55e;
-            --bg: #1a1a1a; /* Тъмен режим за пестене на батерия */
-            --card: #2d2d2d;
-        }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: var(--card);
-            padding: 40px;
-            border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 320px;
-            position: relative;
-        }
-        /* Кръгов индикатор */
-        .progress-ring {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-        }
-        .progress-ring circle {
-            fill: none;
-            stroke-width: 10;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-            transition: stroke-dashoffset 0.3s;
-        }
-        #timer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            font-weight: bold;
-        }
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 20px;
-        }
-        .stat-val { display: block; font-size: 20px; font-weight: bold; }
-        .quote { font-style: italic; color: #888; margin-bottom: 40px; text-align: center; }
+        :root { --primary: #22c55e; --bg: #121212; --card: #1e1e1e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: var(--card); padding: 30px; border-radius: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; width: 300px; }
+        .progress-ring { position: relative; width: 220px; height: 220px; margin: 20px auto; }
+        .progress-ring circle { fill: none; stroke-width: 12; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.3s; }
+        #timer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 54px; font-weight: bold; }
+        .controls { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
+        button { padding: 12px 25px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        #startBtn { background: var(--primary); color: white; }
+        #resetBtn { background: #444; color: white; }
+        button:active { transform: scale(0.95); }
+        .stats { display: flex; justify-content: space-around; margin-top: 20px; font-size: 14px; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="quote" id="quote">"Всяка почивка е стъпка към успеха."</div>
+    <div style="font-style: italic; color: #888; margin-bottom: 20px;">"Ти си господарят на своя остров."</div>
 
     <div class="container">
-        <div style="font-size: 12px; letter-spacing: 3px; color: var(--primary); margin-bottom: 20px;">КРУЗО АЛАРМ</div>
+        <div style="letter-spacing: 3px; font-size: 12px; color: var(--primary);">КРУЗО АЛАРМ</div>
         
         <div class="progress-ring">
-            <svg width="200" height="200">
-                <circle stroke="#444" r="90" cx="100" cy="100"/>
-                <circle id="bar" stroke="#22c55e" r="90" cx="100" cy="100" stroke-dasharray="565.48" stroke-dashoffset="0"/>
+            <svg width="220" height="220">
+                <circle stroke="#333" r="100" cx="110" cy="110"/>
+                <circle id="bar" stroke="#22c55e" r="100" cx="110" cy="110" stroke-dasharray="628.3" stroke-dashoffset="0"/>
             </svg>
             <div id="timer">50:00</div>
         </div>
 
+        <div class="controls">
+            <button id="startBtn" onclick="toggleTimer()">СТАРТ</button>
+            <button id="resetBtn" onclick="resetTimer()">НУЛИРАНЕ</button>
+        </div>
+
         <div class="stats">
-            <div style="color: #ef4444;">Кортизол<span class="stat-val" id="cort">0</span></div>
-            <div style="color: #3b82f6;">Ендорфини<span class="stat-val" id="endo">0</span></div>
+            <div>Кортизол: <span id="cort">0</span></div>
+            <div>Ендорфини: <span id="endo">0</span></div>
         </div>
     </div>
 
     <script>
-        // Регистрация за PWA
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         let total = 3000;
         let current = total;
+        let isRunning = false;
+        let timerInterval;
         const bar = document.getElementById('bar');
-        const circleLength = 565.48;
+        const circleLength = 628.3;
 
-        function update() {
+        function updateUI() {
             let m = Math.floor(current / 60);
             let s = current % 60;
             document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            
-            // Анимация на кръга
-            let offset = circleLength - (current / total) * circleLength;
-            bar.style.strokeDashoffset = offset;
-
-            if (current > 0) {
-                current--;
-                if (current % 60 === 0) document.getElementById('cort').innerText = Math.floor((total-current)/60);
-            } else {
-                // Звук при край (ползваме системен сигнал)
-                let context = new AudioContext();
-                let osc = context.createOscillator();
-                osc.connect(context.destination);
-                osc.start();
-                osc.stop(context.currentTime + 1);
-            }
+            bar.style.strokeDashoffset = circleLength - (current / total) * circleLength;
         }
-        setInterval(update, 1000);
+
+        function toggleTimer() {
+            const btn = document.getElementById('startBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "СТАРТ";
+                btn.style.background = "#22c55e";
+            } else {
+                timerInterval = setInterval(() => {
+                    if (current > 0) {
+                        current--;
+                        updateUI();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("Времето изтече! Почини си.");
+                    }
+                }, 1000);
+                btn.innerText = "ПАУЗА";
+                btn.style.background = "#ef4444";
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            current = total;
+            document.getElementById('startBtn').innerText = "СТАРТ";
+            document.getElementById('startBtn').style.background = "#22c55e";
+            updateUI();
+        }
+
+        updateUI();
     </script>
 </body>
 </html>
