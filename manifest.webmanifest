@@ -1,7 +1,7 @@
 {
   "name": "Социален компас: Робинзон Крузо и AI",
   "short_name": "Социален компас",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8f8f8",
   "theme_color": "#22c55e",
