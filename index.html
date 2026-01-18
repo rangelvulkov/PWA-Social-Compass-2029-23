@@ -228,7 +228,59 @@ installBtn.addEventListener('click', async () => {
             installBtn.style.display = 'none'; // Скрива бутона при успех
         }
         deferredPrompt = null;
+        });
+    let time = 3000; 
+    let running = false;
+    let timerId = null;
+
+    function updateDisplay() {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        document.getElementById('timer').innerText = 
+            `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
-});</script>
+    function toggle() {
+        if (!running) {
+            running = true;
+            timerId = setInterval(() => {
+                if (time > 0) {
+                    time--;
+                    updateDisplay();
+                }
+            }, 1000);
+        } else {
+            running = false;
+            clearInterval(timerId);
+        }
+    }
+    function reset() {
+        clearInterval(timerId);
+        running = false;
+        time = 3000;
+        updateDisplay();
+    }
+
+    // 2. ТВОЯТ НОВ КОД ЗА ИНСТАЛИРАНЕ (Който добавихме сега)
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') installBtn.style.display = 'none';
+            deferredPrompt = null;
+        }
+    });
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+    updateDisplay();
+</script>   
 </body>
 </html>
