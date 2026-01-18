@@ -3,160 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Социален компас: Робинзон Крузо</title>
-    
+    <title>Крузо Аларм</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <meta name="theme-color" content="#22c55e">
-
     <style>
-        :root {
-            --primary: #22c55e;
-            --bg: #f8f8f8;
-            --text: #333;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        .quote-container {
-            height: 60px;
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 0 20px;
-        }
-        #quote {
-            font-style: italic;
-            color: #666;
-            font-size: 1.1rem;
-            transition: opacity 0.5s;
-        }
-        .main-card {
-            background: white;
-            padding: 50px;
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-            text-align: center;
-            width: 320px;
-        }
-        .app-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #aaa;
-            margin-bottom: 15px;
-        }
-        #timer {
-            font-size: 80px;
-            font-weight: 800;
-            margin: 25px 0;
-            font-variant-numeric: tabular-nums;
-        }
-        .stats-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .stat-label {
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        .cortisol { color: #ef4444; }
-        .endorphin { color: #3b82f6; }
-        .stat-value {
-            font-weight: bold;
-            font-size: 18px;
-        }
+        body { background: #f8f8f8; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; }
+        #timer { font-size: 60px; font-weight: bold; margin: 20px 0; color: #22c55e; }
     </style>
 </head>
 <body>
-
-    <div class="quote-container">
-        <div id="quote">"Всяка почивка е стъпка към успеха."</div>
-    </div>
-
-    <div class="main-card">
-        <div class="app-title">Крузо Аларм</div>
+    <div id="quote">"Всяка почивка е стъпка към успеха."</div>
+    <div class="card">
+        <div>КРУЗО АЛАРМ</div>
         <div id="timer">50:00</div>
-        
-        <div class="stats-grid">
-            <div class="stat-item cortisol">
-                <span class="stat-label">Кортизол</span>
-                <span class="stat-value" id="cort-val">0</span>
-            </div>
-            <div class="stat-item endorphin">
-                <span class="stat-label">Ендорфини</span>
-                <span class="stat-value" id="endo-val">0</span>
-            </div>
+        <div style="display:flex; justify-content: space-around;">
+            <span style="color:red">Кортизол: 0</span>
+            <span style="color:blue">Ендорфини: 0</span>
         </div>
     </div>
-
     <script>
-        // 1. РЕГИСТРАЦИЯ НА SERVICE WORKER (За инсталиране)
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log("Инсталирането е активно!"))
-                .catch(err => console.error("Грешка:", err));
+            navigator.serviceWorker.register('sw.js');
         }
-
-        // 2. ЛОГИКА НА ТАЙМЕРА
-        let timeLeft = 3000; // 50 минути в секунди
-        let cort = 0;
-        let endo = 0;
-
-        const timerDisplay = document.getElementById('timer');
-        const cortDisplay = document.getElementById('cort-val');
-        const endoDisplay = document.getElementById('endo-val');
-
-        function updateDisplay() {
-            let mins = Math.floor(timeLeft / 60);
-            let secs = timeLeft % 60;
-            timerDisplay.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            cortDisplay.textContent = cort;
-            endoDisplay.textContent = endo;
-        }
-
-        setInterval(() => {
-            if (timeLeft > 0) {
-                timeLeft--;
-                // Примерна логика за промяна на показателите
-                if (timeLeft % 60 === 0) cort++; 
-                if (timeLeft % 120 === 0) endo += 2;
-                updateDisplay();
-            }
-        }, 1000);
-
-        // 3. СМЯНА НА ЦИТАТИТЕ
-        const quotes = [
-            "Всяка почивка е стъпка към успеха.",
-            "Спокойствието е сила.",
-            "Намери своя вътрешен остров.",
-            "Дишай дълбоко, ти си Крузо."
-        ];
-        let quoteIndex = 0;
-        setInterval(() => {
-            quoteIndex = (quoteIndex + 1) % quotes.length;
-            document.getElementById('quote').style.opacity = 0;
-            setTimeout(() => {
-                document.getElementById('quote').textContent = `"${quotes[quoteIndex]}"`;
-                document.getElementById('quote').style.opacity = 1;
-            }, 500);
-        }, 10000);
-
-        updateDisplay();
     </script>
 </body>
 </html>
