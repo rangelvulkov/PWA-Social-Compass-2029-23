@@ -143,7 +143,7 @@
                         cortisol += 5; endorphins -= 5;
                     }
                     updateUI();
-                    if (sessionSeconds >= 30) triggerAlarm(); // 50 мин
+                    if (sessionSeconds >= 3000) triggerAlarm(); // 50 мин
                 }, 1000);
             } else { stop(); }
         }
