@@ -7,284 +7,236 @@
     <link rel="manifest" href="manifest.webmanifest">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .compass-spin { animation: spin 10s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 h-screen flex flex-col font-sans">
+<body class="bg-gray-50 text-gray-800 h-screen flex flex-col font-sans overflow-hidden">
 
     <header class="bg-green-600 text-white p-4 shadow-lg text-center">
-        <h1 class="text-xl font-bold mb-2 uppercase tracking-wider">Социален компас</h1>
-        <div class="text-sm italic font-medium h-6 transition-opacity duration-500" id="motto-container">
-            Зареждане...
-        </div>
+        <h1 class="text-lg font-bold uppercase mb-1">Социален компас</h1>
+        <div id="motto-display" class="text-sm italic min-h-[1.2rem] transition-opacity duration-500"></div>
     </header>
 
-    <main class="flex-grow flex flex-col items-center justify-center p-6 space-y-8 relative">
+    <main class="flex-grow flex flex-col items-center justify-center p-6 space-y-8">
         
-        <div class="text-center z-10">
-            <div class="relative w-64 h-64 mx-auto mb-6 flex items-center justify-center bg-white rounded-full shadow-2xl border-4 border-green-500">
-                <img src="icon.svg" class="absolute w-full h-full opacity-10 compass-spin" alt="Compass">
-                <div class="z-20">
-                    <div class="text-6xl font-bold text-gray-700 tabular-nums" id="timer-display">00:00</div>
-                    <p class="text-gray-500 text-sm mt-2">Време пред екрана</p>
-                </div>
+        <div class="text-center">
+            <div class="w-64 h-64 mx-auto mb-6 flex flex-col items-center justify-center bg-white rounded-full shadow-2xl border-8 border-green-500 relative">
+                <div class="text-5xl font-black text-gray-700 tabular-nums" id="timer-display">00:00</div>
+                <div class="text-xs text-gray-400 mt-2 uppercase">Време пред екрана</div>
             </div>
 
-            <div class="space-x-4">
-                <button id="start-btn" onclick="startTimer()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
-                    <i class="fas fa-play mr-2"></i> Старт
-                </button>
-                <button id="stop-btn" onclick="stopTimer()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105 hidden">
-                    <i class="fas fa-pause mr-2"></i> Стоп
+            <div class="flex gap-4 justify-center">
+                <button id="start-btn" onclick="toggleTimer()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-xl transition-all transform active:scale-95">
+                    <i class="fas fa-play mr-2"></i> СТАРТ
                 </button>
             </div>
         </div>
 
-        <div class="w-full max-w-md bg-white p-4 rounded-xl shadow-md grid grid-cols-2 gap-4">
-            <div class="text-center p-2 bg-red-50 rounded-lg border border-red-100">
-                <p class="text-xs text-gray-500 uppercase">Кортизол (Стрес)</p>
-                <p class="text-2xl font-bold text-red-600" id="cortisol-display">0</p>
+        <div class="w-full max-w-md grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-red-500 text-center">
+                <p class="text-[10px] text-gray-400 uppercase font-bold">Кортизол</p>
+                <p class="text-3xl font-black text-red-600" id="cortisol-val">0</p>
             </div>
-            <div class="text-center p-2 bg-blue-50 rounded-lg border border-blue-100">
-                <p class="text-xs text-gray-500 uppercase">Ендорфини (Щастие)</p>
-                <p class="text-2xl font-bold text-blue-600" id="endorphin-display">0</p>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-500 text-center">
+                <p class="text-[10px] text-gray-400 uppercase font-bold">Ендорфини</p>
+                <p class="text-3xl font-black text-blue-600" id="endorphin-val">0</p>
             </div>
         </div>
     </main>
 
-    <div id="mission-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 text-center shadow-2xl relative">
-            <div class="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">⚠️ Времето изтече!</h2>
-            <p class="text-gray-600 mb-6">Достигнахте лимита. Време е за реалния свят.</p>
-            
-            <div id="mission-content" class="hidden mb-6 bg-green-50 p-4 rounded-lg border border-green-200">
-                <h3 class="text-xl font-bold text-green-700 mb-2" id="mission-title"></h3>
-                <p class="text-lg text-gray-700" id="mission-desc"></p>
-                <p class="text-sm text-gray-500 mt-2 italic">Награда: Кортизол -5, Ендорфини +25</p>
+    <div id="modal-overlay" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div id="mission-box" class="bg-white rounded-3xl p-8 max-w-sm w-full text-center hidden">
+            <h2 class="text-2xl font-black text-red-600 mb-4">АЛАРМА!</h2>
+            <p class="text-gray-600 mb-6">Достигнахте 50 минути. Балансирайте хормоните си!</p>
+            <div id="mission-task" class="bg-green-50 p-4 rounded-xl mb-6 border border-green-100 hidden">
+                <h4 id="task-title" class="font-bold text-green-800"></h4>
+                <p id="task-desc" class="text-sm text-green-700"></p>
             </div>
-
-            <div class="flex flex-col gap-3">
-                <button onclick="generateMission()" id="gen-btn" class="bg-blue-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-blue-700 transition">
-                    🎲 Генерирай ФВС Мисия
-                </button>
-                <button onclick="completeMission()" id="complete-btn" class="hidden bg-green-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-green-700 transition">
-                    ✅ Изпълних мисията
-                </button>
-                <button onclick="showEthicalFilter()" class="text-gray-400 text-sm mt-2 underline">
-                    Отказвам мисията (Към Етичен филтър)
-                </button>
-            </div>
+            <button onclick="generateTask()" id="btn-gen" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold mb-2">ГЕНЕРИРАЙ МИСИЯ</button>
+            <button onclick="finishTask()" id="btn-done" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold hidden">ИЗПЪЛНЕНО</button>
+            <button onclick="openEthics()" class="text-xs text-gray-400 underline mt-4 block mx-auto">Отказвам мисията</button>
         </div>
-    </div>
 
-    <div id="ethical-modal" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Етичен Филтър</h3>
-            <div id="ethical-form" class="space-y-4 text-left"></div>
-            <button onclick="processEthicalAnswers()" class="mt-6 w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700">
-                Потвърди
-            </button>
+        <div id="ethics-box" class="bg-white rounded-3xl p-8 max-w-sm w-full hidden">
+            <h3 class="font-bold mb-4">Етичен филтър (Риск)</h3>
+            <div id="ethics-questions" class="space-y-4 mb-6"></div>
+            <button onclick="checkEthics()" class="w-full bg-black text-white py-4 rounded-xl font-bold">ПРОВЕРКА</button>
         </div>
-    </div>
 
-    <div id="crisis-modal" class="fixed inset-0 bg-red-900 bg-opacity-95 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-8 text-center shadow-2xl border-4 border-red-500">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Висок риск!</h2>
-            <p class="text-gray-600 mb-6">Нужна е връзка с реален човек.</p>
-            <div class="space-y-4 mb-6">
-                <a href="tel:116111" class="block bg-red-50 p-4 rounded-xl border border-red-200">
-                    <div class="font-bold text-red-700">Национална линия за подкрепа</div>
-                    <div class="text-2xl font-black text-gray-800">116 111</div>
-                </a>
-                <a href="tel:080011977" class="block bg-red-50 p-4 rounded-xl border border-red-200">
-                    <div class="font-bold text-red-700">Линия за помощ (насилие)</div>
-                    <div class="text-2xl font-black text-gray-800">0800 11 977</div>
-                </a>
+        <div id="crisis-box" class="bg-white rounded-3xl p-8 max-w-sm w-full text-center hidden border-4 border-red-600">
+            <h2 class="text-xl font-black text-red-600 mb-4">ВИСОК РИСК!</h2>
+            <p class="text-sm mb-6">Свържете се с реалния свят веднага:</p>
+            <div class="space-y-3">
+                <a href="tel:116111" class="block p-4 bg-red-50 rounded-xl font-bold text-red-700">116 111</a>
+                <a href="tel:080011977" class="block p-4 bg-red-50 rounded-xl font-bold text-red-700">0800 11 977</a>
             </div>
-            <button onclick="backToMissionFromCrisis()" class="text-gray-500 underline text-sm">Обратно към мисия</button>
+            <button onclick="backToMission()" class="mt-6 text-sm underline text-gray-400">Към ФВС мисия</button>
         </div>
     </div>
 
     <script>
-        // ДАННИ ОТ ФАЙЛА НА РАНГЕЛ ВЪЛКОВ
-        const mottos = [
-            "Мързелът няма да те доведе до никъде.",
-            "\"Светът е отвън, не в екрана.\"",
-            "\"Говори с хора, а не с телефона.\"",
-            "Движението е лекът на живота.",
-            "\"Дори и най-малката вяра, може да ти помогне в най-трудните ти дни.\""
+        // ДАННИ
+        const mottos = ["Мързелът няма да те доведе до никъде.", "\"Светът е отвън, не в екрана.\"", "\"Говори с хора, а не с телефона.\"", "Движението е лекът на живота.", "\"Дори и най-малката вяра, може да ти помогне в най-трудните ти дни.\""];
+        const tasks = [
+            {t: "Клекове", d: "60 клека до долу с изпънати ръце"},
+            {t: "Jumping Jacks", d: "от 30 и 40, бързо изпълнение"},
+            {t: "Бавно тичане", d: "5 км джогинг (или на място)"},
+            {t: "Планк", d: "2 мин. планк на лакти"}
         ];
+        const ethics = ["Предпочитате ли да търсите подкрепа от AI, вместо от хора?", "Чрез AI можем ли да избягаме от физическите проблеми?", "Пренебрегвате ли основни нужди заради екрана?"];
 
-        const missions = [
-            { title: "Клекове", instr: "60 клека до долу с изпънати ръце" },
-            { title: "Jumping Jacks", instr: "от 30 и 40, бързо изпълнение" },
-            { title: "Бавно тичане", instr: "5 км джогинг (или еквивалент на място)" },
-            { title: "Планк", instr: "2 мин. планк на лакти, изпънато тяло" }
-        ];
-
-        const ethicalQuestions = [
-            "Предпочитате ли да търсите подкрепа от AI, вместо да говорите с други хора?",
-            "Чрез изкуствения интелект можем ли да избягаме от физическите си проблеми?",
-            "Пренебрегвате ли основните си нужди, за да прекарате повече време на екрана?"
-        ];
-
-        // --- ЛОГИКА ---
-        
-        // 1. ИЗРИЧНО ЗАДАВАНЕ НА 0 ПРИ СТАРТ
-        let cortisol = 0; 
+        // СЪСТОЯНИЕ
+        let seconds = 0;
+        let cortisol = 0;
         let endorphins = 0;
-        
-        let timerInterval;
-        let totalSeconds = 0;
         let isRunning = false;
-        const ALARM_THRESHOLD_SEC = 50 * 60; // 50 минути
+        let timerId;
+        let lastTimestamp = Date.now();
 
-        // Обновяване на екрана при зареждане, за да сме сигурни че е 0
-        window.onload = function() {
-            updateHormonesUI();
-            rotateMotto();
-        };
+        // ИНИЦИАЛИЗАЦИЯ
+        function init() {
+            updateUI();
+            startMottoRotation();
+        }
 
-        function startTimer() {
-            if (isRunning) return;
-            document.getElementById('start-btn').classList.add('hidden');
-            document.getElementById('stop-btn').classList.remove('hidden');
-            isRunning = true;
-
-            timerInterval = setInterval(() => {
-                totalSeconds++;
-                updateDisplay();
-                
-                // ЛОГИКА ЗА 5 МИНУТИ (300 секунди)
-                // Ако секундите се делят на 300 без остатък (и не е 0 секундата)
-                if (totalSeconds > 0 && totalSeconds % 300 === 0) {
-                    cortisol += 5;      // Вдигаме стреса
-                    endorphins -= 5;    // Сваляме щастието
-                    updateHormonesUI(); // Веднага обновяваме екрана
-                }
-
-                if (totalSeconds >= ALARM_THRESHOLD_SEC) {
-                    triggerAlarm();
-                }
-            }, 1000);
+        function toggleTimer() {
+            const btn = document.getElementById('start-btn');
+            if(!isRunning) {
+                isRunning = true;
+                btn.innerHTML = '<i class="fas fa-pause mr-2"></i> СТОП';
+                btn.classList.replace('bg-green-600', 'bg-red-500');
+                lastTimestamp = Date.now();
+                timerId = setInterval(tick, 1000);
+            } else {
+                stopTimer();
+            }
         }
 
         function stopTimer() {
-            clearInterval(timerInterval);
             isRunning = false;
-            document.getElementById('start-btn').classList.remove('hidden');
-            document.getElementById('stop-btn').classList.add('hidden');
+            clearInterval(timerId);
+            const btn = document.getElementById('start-btn');
+            btn.innerHTML = '<i class="fas fa-play mr-2"></i> СТАРТ';
+            btn.classList.replace('bg-red-500', 'bg-green-600');
         }
 
-        function updateDisplay() {
-            const m = Math.floor(totalSeconds / 60);
-            const s = totalSeconds % 60;
-            document.getElementById('timer-display').innerText = 
-                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        function tick() {
+            const now = Date.now();
+            const delta = Math.floor((now - lastTimestamp) / 1000);
+            if (delta > 0) {
+                seconds += delta;
+                lastTimestamp = now;
+
+                // ЛОГИКА НА 5 МИНУТИ (300 сек)
+                if (seconds % 300 === 0) {
+                    cortisol += 5;
+                    endorphins -= 5; // Намаляват според инструкцията
+                }
+
+                // ПРАГ 50 МИНУТИ
+                if (seconds >= 3000) {
+                    triggerAlarm();
+                }
+                updateUI();
+            }
         }
 
-        function updateHormonesUI() {
-            // Показва стойностите. Ако е отрицателно, показва минус, ако положително - само числото (или плюс по желание)
-            document.getElementById('cortisol-display').innerText = cortisol;
-            document.getElementById('endorphin-display').innerText = endorphins;
+        function updateUI() {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            document.getElementById('timer-display').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            document.getElementById('cortisol-val').innerText = cortisol;
+            document.getElementById('endorphin-val').innerText = endorphins;
         }
 
         function triggerAlarm() {
             stopTimer();
-            // Звук
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            osc.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 1);
-            
-            document.getElementById('mission-modal').classList.remove('hidden');
+            new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
+            showModal('mission-box');
         }
 
-        // --- МИСИИ И ЕТИКА ---
-        let currentMottoIndex = 0;
-        function rotateMotto() {
-            const el = document.getElementById('motto-container');
-            el.style.opacity = 0;
-            setTimeout(() => {
-                el.innerText = mottos[currentMottoIndex];
-                el.style.opacity = 1;
-                currentMottoIndex = (currentMottoIndex + 1) % mottos.length;
-            }, 500);
-        }
-        setInterval(rotateMotto, 5000);
-
-        function generateMission() {
-            const m = missions[Math.floor(Math.random() * missions.length)];
-            document.getElementById('mission-title').innerText = m.title;
-            document.getElementById('mission-desc').innerText = m.instr;
-            document.getElementById('gen-btn').classList.add('hidden');
-            document.getElementById('mission-content').classList.remove('hidden');
-            document.getElementById('complete-btn').classList.remove('hidden');
+        // МИСИИ
+        function generateTask() {
+            const task = tasks[Math.floor(Math.random()*tasks.length)];
+            document.getElementById('task-title').innerText = task.t;
+            document.getElementById('task-desc').innerText = task.d;
+            document.getElementById('task-task').classList.remove('hidden'); // Fix ID
+            document.getElementById('mission-task').classList.remove('hidden');
+            document.getElementById('btn-gen').classList.add('hidden');
+            document.getElementById('btn-done').classList.remove('hidden');
         }
 
-        function completeMission() {
-            // Награда за изпълнена мисия
+        function finishTask() {
             cortisol -= 5;
             endorphins += 25;
-            updateHormonesUI();
-            
-            // Рестарт на таймера
-            totalSeconds = 0;
-            updateDisplay();
-            
-            closeAllModals();
+            seconds = 0;
+            updateUI();
+            hideModals();
         }
 
-        function showEthicalFilter() {
-            document.getElementById('mission-modal').classList.add('hidden');
-            document.getElementById('ethical-modal').classList.remove('hidden');
-            const c = document.getElementById('ethical-form');
-            c.innerHTML = '';
-            ethicalQuestions.forEach((q, i) => {
-                c.innerHTML += `
-                    <div class="bg-gray-50 p-3 rounded border">
-                        <p class="font-medium mb-2">${q}</p>
-                        <label><input type="radio" name="q${i}" value="yes"> Да</label>
-                        <label class="ml-4"><input type="radio" name="q${i}" value="no"> Не</label>
+        // ЕТИКА
+        function openEthics() {
+            hideModals();
+            showModal('ethics-box');
+            const container = document.getElementById('ethics-questions');
+            container.innerHTML = ethics.map((q, i) => `
+                <div class="text-sm p-3 bg-gray-50 rounded-lg">
+                    <p class="mb-2 font-bold">${q}</p>
+                    <div class="flex gap-4">
+                        <label><input type="radio" name="e${i}" value="1"> Да</label>
+                        <label><input type="radio" name="e${i}" value="0" checked> Не</label>
                     </div>
-                `;
-            });
+                </div>
+            `).join('');
         }
 
-        function processEthicalAnswers() {
-            let yes = 0;
-            ethicalQuestions.forEach((_, i) => {
-                const r = document.querySelector(`input[name="q${i}"]:checked`);
-                if (r && r.value === 'yes') yes++;
-            });
-
-            if (yes >= 2) {
-                document.getElementById('ethical-modal').classList.add('hidden');
-                document.getElementById('crisis-modal').classList.remove('hidden');
+        function checkEthics() {
+            let score = 0;
+            for(let i=0; i<3; i++) {
+                const val = document.querySelector(`input[name="e${i}"]:checked`).value;
+                score += parseInt(val);
+            }
+            if(score >= 2) {
+                hideModals();
+                showModal('crisis-box');
             } else {
-                alert("Рискът е нисък. Моля, върнете се към физическата мисия.");
-                document.getElementById('ethical-modal').classList.add('hidden');
-                document.getElementById('mission-modal').classList.remove('hidden');
+                alert("Рискът е нисък. Изпълнете ФВС мисия за здраве.");
+                backToMission();
             }
         }
 
-        function backToMissionFromCrisis() {
-            document.getElementById('crisis-modal').classList.add('hidden');
-            document.getElementById('mission-modal').classList.remove('hidden');
+        function backToMission() {
+            hideModals();
+            showModal('mission-box');
         }
 
-        function closeAllModals() {
-            document.getElementById('mission-modal').classList.add('hidden');
-            document.getElementById('ethical-modal').classList.add('hidden');
-            document.getElementById('crisis-modal').classList.add('hidden');
-            document.getElementById('gen-btn').classList.remove('hidden');
-            document.getElementById('mission-content').classList.add('hidden');
-            document.getElementById('complete-btn').classList.add('hidden');
+        // ПОМОЩНИ
+        function showModal(id) {
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         }
+
+        function hideModals() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            document.querySelectorAll('#modal-overlay > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById('btn-gen').classList.remove('hidden');
+            document.getElementById('btn-done').classList.add('hidden');
+            document.getElementById('mission-task').classList.add('hidden');
+        }
+
+        function startMottoRotation() {
+            let i = 0;
+            const el = document.getElementById('motto-display');
+            setInterval(() => {
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.innerText = mottos[i];
+                    el.style.opacity = 1;
+                    i = (i + 1) % mottos.length;
+                }, 500);
+            }, 6000);
+            el.innerText = mottos[0];
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
